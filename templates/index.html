@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelForge Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for Controls -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🎨 PixelForge Pro</h2>
+            </div>
+            <div class="upload-section">
+                <label for="imageInput" class="upload-btn">Upload Image</label>
+                <input type="file" id="imageInput" accept="image/*" hidden>
+            </div>
+
+            <nav class="tools-menu">
+                <!-- Interactive Tools -->
+                <h3>Interactive Tools</h3>
+                <div class="tool-group">
+                    <label>Resize Image</label>
+                    <div class="input-row">
+                        <input type="number" id="resizeWidth" placeholder="Width">
+                        <input type="number" id="resizeHeight" placeholder="Height">
+                    </div>
+                    <button data-tool="resize">📏 Resize</button>
+                </div>
+                <div class="tool-group">
+                    <label for="compressQuality">Compression Quality: <span id="compressValue">90</span></label>
+                    <input type="range" id="compressQuality" min="1" max="100" value="90" class="slider">
+                    <button data-tool="compress">📦 Compress</button>
+                </div>
+
+                <!-- Basic Adjustments -->
+                <h3>Basic Adjustments</h3>
+                <button data-tool="enhance">✨ Enhance Image</button>
+                <button data-tool="grayscale">🔳 Grayscale</button>
+                <button data-tool="blur">💧 Blur Image</button>
+                
+                <!-- Artistic Filters -->
+                <h3>Artistic Filters</h3>
+                <button data-tool="sketch">✏️ Pencil Sketch</button>
+                <button data-tool="posterize">🎨 Posterize</button>
+
+                <!-- Advanced Tools -->
+                <h3>Advanced Tools</h3>
+                <button data-tool="face_detect">🙂 Face Detection</button>
+                <button data-tool="qr_scan">📲 Scan QR Code</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="image-workspace">
+                <div class="image-box" id="original-box">
+                    <h3>Original</h3>
+                    <img id="originalImage" src="{{ url_for('static', filename='placeholder.png') }}" alt="Upload an image to start">
+                </div>
+                <div class="image-box" id="processed-box">
+                    <h3>Processed</h3>
+                    <img id="processedImage" src="{{ url_for('static', filename='placeholder.png') }}" alt="Your result will appear here">
+                    
+                    <!-- Download Section -->
+                    <div id="downloadSection" class="download-section hidden">
+                        <select id="formatSelect">
+                            <option value="png">PNG</option>
+                            <option value="jpg">JPG</option>
+                            <option value="webp">WEBP</option>
+                        </select>
+                        <button id="downloadBtn">📥 Download</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom Message Box for QR Code -->
+    <div id="messageBox" class="message-box-overlay hidden">
+        <div class="message-box">
+            <h3 id="messageTitle"></h3>
+            <p id="messageText"></p>
+            <button id="closeMessageBox">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const imageInput = document.getElementById('imageInput');
+            const originalImage = document.getElementById('originalImage');
+            const processedImage = document.getElementById('processedImage');
+            const toolsMenu = document.querySelector('.tools-menu');
+            const compressQualitySlider = document.getElementById('compressQuality');
+            const compressValueSpan = document.getElementById('compressValue');
+            const resizeWidthInput = document.getElementById('resizeWidth');
+            const resizeHeightInput = document.getElementById('resizeHeight');
+            
+            // Message Box Elements
+            const messageBox = document.getElementById('messageBox');
+            const messageTitle = document.getElementById('messageTitle');
+            const messageText = document.getElementById('messageText');
+            const closeMessageBox = document.getElementById('closeMessageBox');
+            
+            // Download Elements
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const formatSelect = document.getElementById('formatSelect');
+
+            let uploadedFile = null;
+            let processedImageBlob = null;
+
+            // Update compression slider value display
+            compressQualitySlider.addEventListener('input', () => {
+                compressValueSpan.textContent = compressQualitySlider.value;
+            });
+
+            // Handle image upload
+            imageInput.addEventListener('change', (event) => {
+                uploadedFile = event.target.files[0];
+                if (uploadedFile) {
+                    originalImage.src = URL.createObjectURL(uploadedFile);
+                    processedImage.src = "{{ url_for('static', filename='placeholder.png') }}";
+                    processedImageBlob = null;
+                    downloadSection.classList.add('hidden');
+                }
+            });
+            
+            // Handle tool button clicks via event delegation
+            toolsMenu.addEventListener('click', (event) => {
+                if (event.target.tagName === 'BUTTON' && event.target.dataset.tool) {
+                    const tool = event.target.dataset.tool;
+                    if (!uploadedFile) {
+                        showModal("Notification", "Please upload an image first!");
+                        return;
+                    }
+                    applyTool(tool);
+                }
+            });
+
+            // Handle Download Button Click
+            downloadBtn.addEventListener('click', async () => {
+                if (!processedImageBlob) {
+                    showModal("Notification", "There is no processed image to download.");
+                    return;
+                }
+
+                const format = formatSelect.value;
+                const formData = new FormData();
+                formData.append('image', processedImageBlob, 'processed_image.png');
+                formData.append('format', format);
+                
+                try {
+                    // Assumes a backend endpoint '/api/download' exists
+                    const response = await fetch('/api/download', { method: 'POST', body: formData });
+                    if (!response.ok) throw new Error('Download request failed.');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `processed_image.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } catch (error) {
+                    console.error("Download Error:", error);
+                    showModal("Error", error.message);
+                }
+            });
+
+            // Close message box
+            closeMessageBox.addEventListener('click', () => messageBox.classList.add('hidden'));
+
+            // Main function to call backend for processing
+            async function applyTool(tool) {
+                const formData = new FormData();
+                formData.append('image', uploadedFile);
+                formData.append('tool', tool); // Send the tool name in the form data
+
+                // Add specific parameters for tools that need them
+                if (tool === 'resize') {
+                    const width = resizeWidthInput.value;
+                    const height = resizeHeightInput.value;
+                    if (!width || !height || width <= 0 || height <= 0) {
+                        showModal("Validation Error", "Please enter valid positive numbers for width and height.");
+                        return;
+                    }
+                    formData.append('width', width);
+                    formData.append('height', height);
+                }
+
+                if (tool === 'compress') {
+                    formData.append('quality', compressQualitySlider.value);
+                }
+
+                processedImage.src = "https://i.gifer.com/ZZ5H.gif"; // Show loading state
+
+                try {
+                    // Assumes a backend endpoint '/api/process' exists
+                    const response = await fetch('/api/process', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred.' }));
+                        throw new Error(errorData.error);
+                    }
+                    
+                    // Special handling for QR scan which returns JSON
+                    if (tool === 'qr_scan') {
+                         const result = await response.json();
+                         showModal("QR Code Result", result.text);
+                         processedImage.src = originalImage.src; // Revert to original
+                         downloadSection.classList.add('hidden');
+                         processedImageBlob = null;
+                         return;
+                    }
+
+                    processedImageBlob = await response.blob();
+                    processedImage.src = URL.createObjectURL(processedImageBlob);
+                    downloadSection.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error("Error processing image:", error);
+                    showModal("Error", `An error occurred: ${error.message}`);
+                    processedImage.src = "{{ url_for('static', filename='placeholder.png') }}";
+                }
+            }
+
+            // Custom modal function to replace alert()
+            function showModal(title, text) {
+                messageTitle.textContent = title;
+                messageText.textContent = text;
+                messageBox.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+

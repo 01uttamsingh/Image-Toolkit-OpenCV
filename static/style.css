@@ -1,0 +1,258 @@
+/* General Styling */
+:root {
+    --primary-bg: #1e1e1e;
+    --secondary-bg: #2d2d2d;
+    --border-color: #444;
+    --text-color: #e0e0e0;
+    --accent-color: #007acc;
+    --accent-hover: #0099ff;
+}
+
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Main Container Layout */
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 280px;
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+}
+
+.logo h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.upload-section .upload-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    background-color: var(--accent-color);
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.upload-section .upload-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.tools-menu {
+    margin-top: 20px;
+}
+
+.tools-menu h3 {
+    color: var(--accent-color);
+    font-size: 1rem;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.tools-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px; /* Added margin-top */
+    margin-bottom: 8px;
+    background-color: #3c3c3c;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    text-align: left;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.tools-menu button:hover {
+    background-color: #4a4a4a;
+    border-color: var(--accent-color);
+}
+
+/* Styles for tool groups with inputs */
+.tool-group {
+    background-color: #383838;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.tool-group label {
+    font-size: 0.9rem;
+    color: #ccc;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+.tool-group input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+}
+
+.slider {
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Main Content Styling */
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+}
+
+.image-workspace {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: space-around;
+}
+
+.image-box {
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-box h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #aaa;
+}
+
+.image-box img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+/* Custom Message Box (Modal) */
+.message-box-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.message-box {
+    background-color: var(--secondary-bg);
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.message-box h3 {
+    margin-top: 0;
+    color: var(--accent-color);
+}
+
+.message-box p {
+    margin-bottom: 20px;
+    word-wrap: break-word;
+}
+
+.message-box button {
+    padding: 10px 20px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.message-box button:hover {
+    background-color: var(--accent-hover);
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- NEW: Download Section Styles --- */
+.download-section {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+    align-items: center;
+}
+
+.download-section select {
+    flex-grow: 1;
+    padding: 8px;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.download-section button {
+    padding: 8px 15px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 0.9rem;
+}
+
+.download-section button:hover {
+    background-color: var(--accent-hover);
+}
+
